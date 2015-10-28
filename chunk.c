@@ -5,13 +5,12 @@
 
 /*--------------------------------------------------------------------*/
 
-typedef struct Chunk
-{
+typedef struct Chunk {
    size_t uiUnits;
    /* The number of Units in the Chunk.  The low-order bit
       stores the Chunk's status. */
 
-   Chunk_T oAdjacentChunk;
+   Chunk_T AdjacentChunk;
    /* The address of an adjacent Chunk. */
 }Chunk;
 
@@ -27,171 +26,175 @@ size_t Chunk_getUnitSize(void)
 
 /*--------------------------------------------------------------------*/
 
-enum ChunkStatus Chunk_getStatus(Chunk_T oChunk)
+enum ChunkStatus Chunk_getStatus(Chunk_T Chunk)
 
-/* Return the status of oChunk. */
+/* Return the status of Chunk. */
 
 {
-   assert(oChunk != NULL);
+   assert(Chunk != NULL);
 
-   return oChunk->uiUnits & 1U;
+   return Chunk->uiUnits & 1U;
 }
 
 /*--------------------------------------------------------------------*/
 
-void Chunk_setStatus(Chunk_T oChunk, enum ChunkStatus eStatus)
+void Chunk_setStatus(Chunk_T Chunk, enum ChunkStatus eStatus)
 
-/* Set the status of oChunk to eStatus. */
+/* Set the status of Chunk to eStatus. */
 
 {
-   assert(oChunk != NULL);
+   assert(Chunk != NULL);
    assert((eStatus == CHUNK_FREE) || (eStatus == CHUNK_INUSE));
 
-   oChunk->uiUnits &= ~1U;
-   oChunk->uiUnits |= eStatus;
+   Chunk->uiUnits &= ~1U;
+   Chunk->uiUnits |= eStatus;
 }
 
 /*--------------------------------------------------------------------*/
 
-size_t Chunk_getUnits(Chunk_T oChunk)
+size_t Chunk_getUnits(Chunk_T Chunk)
 
-/* Return oChunk's number of units. */
+/* Return Chunk's number of units. */
 
 {
-   assert(oChunk != NULL);
+   assert(Chunk != NULL);
 
-   return oChunk->uiUnits >> 1;
+   return Chunk->uiUnits >> 1;
 }
 
 /*--------------------------------------------------------------------*/
 
-void Chunk_setUnits(Chunk_T oChunk, size_t uiUnits)
+void Chunk_setUnits(Chunk_T Chunk, size_t uiUnits)
 
-/* Set oChunk's number of units to uiUnits. */
+/* Set Chunk's number of units to uiUnits. */
 
 {
-   assert(oChunk != NULL);
+   assert(Chunk != NULL);
    assert(uiUnits >= MIN_UNITS_PER_CHUNK);
 
-   /* Set the Units in oChunk's header. */
-   oChunk->uiUnits &= 1U;
-   oChunk->uiUnits |= uiUnits << 1U;
+   /* Set the Units in Chunk's header. */
+   Chunk->uiUnits &= 1U;
+   Chunk->uiUnits |= uiUnits << 1U;
 
-   /* Set the Units in oChunk's footer. */
-   (oChunk + uiUnits - 1)->uiUnits = uiUnits;
+   /* Set the Units in Chunk's footer. */
+   (Chunk + uiUnits - 1)->uiUnits = uiUnits;
 }
 
 /*--------------------------------------------------------------------*/
 
-Chunk_T Chunk_getNextInList(Chunk_T oChunk)
+Chunk_T Chunk_getNextInList(Chunk_T Chunk)
 
-/* Return oChunk's next Chunk in the free list, or NULL if there
+/* Return Chunk's next Chunk in the free list, or NULL if there
    is no next Chunk. */
 
 {
-   assert(oChunk != NULL);
+   assert(Chunk != NULL);
 
-   return oChunk->oAdjacentChunk;
+   return Chunk->AdjacentChunk;
 }
 
 /*--------------------------------------------------------------------*/
 
-void Chunk_setNextInList(Chunk_T oChunk, Chunk_T oNextChunk)
+void Chunk_setNextInList(Chunk_T Chunk, Chunk_T NextChunk)
 
-/* Set oChunk's next Chunk in the free list to oNextChunk. */
+/* Set Chunk's next Chunk in the free list to NextChunk. */
 
 {
-   assert(oChunk != NULL);
+   assert(Chunk != NULL);
 
-   oChunk->oAdjacentChunk = oNextChunk;
+   Chunk->AdjacentChunk = NextChunk;
 }
 
 /*--------------------------------------------------------------------*/
 
-Chunk_T Chunk_getPrevInList(Chunk_T oChunk)
+Chunk_T Chunk_getPrevInList(Chunk_T Chunk)
 
-/* Return oChunk's previous Chunk in the free list, or NULL if there
+/* Return Chunk's previous Chunk in the free list, or NULL if there
    is no previous Chunk. */
 
 {
-   assert(oChunk != NULL);
+   assert(Chunk != NULL);
 
-   return (oChunk + Chunk_getUnits(oChunk) - 1)->oAdjacentChunk;
+   return (Chunk + Chunk_getUnits(Chunk) - 1)->AdjacentChunk;
 }
 
 /*--------------------------------------------------------------------*/
 
-void Chunk_setPrevInList(Chunk_T oChunk, Chunk_T oPrevChunk)
+void Chunk_setPrevInList(Chunk_T Chunk, Chunk_T PrevChunk)
 
-/* Set oChunk's previous Chunk in the free list to oPrevChunk. */
+/* Set Chunk's previous Chunk in the free list to PrevChunk. */
 
 {
-   assert(oChunk != NULL);
+   assert(Chunk != NULL);
 
-   (oChunk + Chunk_getUnits(oChunk) - 1)->oAdjacentChunk = oPrevChunk;
+   (Chunk + Chunk_getUnits(Chunk) - 1)->AdjacentChunk = PrevChunk;
 }
 
 /*--------------------------------------------------------------------*/
 
-Chunk_T Chunk_getNextInMem(Chunk_T oChunk, Chunk_T oHeapEnd)
+Chunk_T Chunk_getNextInMem(Chunk_T Chunk, Chunk_T HeapEnd)
 
-/* Return oChunk's next Chunk in memory, or NULL if there is no
-   next Chunk.  Use oHeapEnd to determine if there is no next
-   Chunk.  oChunk's number of units must be set properly for this
+/* Return Chunk's next Chunk in memory, or NULL if there is no
+   next Chunk.  Use HeapEnd to determine if there is no next
+   Chunk.  Chunk's number of units must be set properly for this
    function to work. */
 
 {
-   Chunk_T oNextChunk;
+   Chunk_T NextChunk;
 
-   assert(oChunk != NULL);
-   assert(oHeapEnd != NULL);
-   assert(oChunk < oHeapEnd);
+   assert(Chunk != NULL);
+   assert(HeapEnd != NULL);
+   assert(Chunk < HeapEnd);
 
-   oNextChunk = oChunk + Chunk_getUnits(oChunk);
-   assert(oNextChunk <= oHeapEnd);
+   NextChunk = Chunk + Chunk_getUnits(Chunk);
+   assert(NextChunk <= HeapEnd);
 
-   if (oNextChunk == oHeapEnd)
+   if (NextChunk == HeapEnd)
       return NULL;
-   return oNextChunk;
+   return NextChunk;
 }
 
 /*--------------------------------------------------------------------*/
 
-Chunk_T Chunk_getPrevInMem(Chunk_T oChunk, Chunk_T oHeapStart)
+Chunk_T Chunk_getPrevInMem(Chunk_T Chunk, Chunk_T HeapStart)
 
-/* Return oChunk's previous Chunk in memory, or NULL if there is no
-   previous Chunk.  Use oHeapStart to determine if there is no
-   previous Chunk.  The previous Chunk's number of units must be set
+/* Return Chunk's previous Chunk in memory, or NULL if there is no
+   previous Chunk. Use HeapStart to determine if there is no
+   previous Chunk. The previous Chunk's number of units must be set
    properly for this function to work. */
 
-{
-   Chunk_T oPrevChunk;
+{  
+   size_t UnitSize = Chunk_getUnitSize();
+   Chunk_T PrevChunk;
+   Chunk_T PrevFooter = (Chunk_T)((char *)Chunk - UnitSize);
+   size_t PrevSize = PrevFooter->uiUnits;
 
-   assert(oChunk != NULL);
-   assert(oHeapStart != NULL);
-   assert(oChunk >= oHeapStart);
+   //size_t PrevSize = (Chunk - Chunk_getUnits(Chunk) - 1)->uiUnits;
+   assert(Chunk != NULL);
+   assert(HeapStart != NULL);
+   assert(Chunk >= HeapStart);
 
-   if (oChunk == oHeapStart)
+   if (Chunk == HeapStart)
       return NULL;
 
-   oPrevChunk = oChunk - ((oChunk - 1)->uiUnits);
-   assert(oPrevChunk >= oHeapStart);
+   PrevChunk = Chunk - PrevSize;
+   assert(PrevChunk >= HeapStart);
 
-   return oPrevChunk;
+   return PrevChunk;
 }
 
 /*--------------------------------------------------------------------*/
 
 #ifndef NDEBUG
 
-static size_t Chunk_getFooterUnits(Chunk_T oChunk)
+size_t Chunk_getFooterUnits(Chunk_T Chunk)
 
-/* Return the number of units as stored in oChunk's footer. */
+/* Return the number of units as stored in Chunk's footer. */
 
 {
-   assert(oChunk != NULL);
+   assert(Chunk != NULL);
 
-   return (oChunk + Chunk_getUnits(oChunk) - 1)->uiUnits;
+   return (Chunk + Chunk_getUnits(Chunk) - 1)->uiUnits;
 }
 
 #endif
@@ -200,27 +203,27 @@ static size_t Chunk_getFooterUnits(Chunk_T oChunk)
 
 #ifndef NDEBUG
 
-int Chunk_isValid(Chunk_T oChunk, Chunk_T oHeapStart, Chunk_T oHeapEnd)
+int Chunk_isValid(Chunk_T Chunk, Chunk_T HeapStart, Chunk_T HeapEnd)
 
-/* Return 1 (TRUE) if oChunk is valid, notably with respect to
-   psHeapStart and psHeapEnd, or 0 (FALSE) otherwise. */
+/* Return 1 (TRUE) if Chunk is valid, notably with respect to
+   HeapStart and HeapEnd, or 0 (FALSE) otherwise. */
 
 {
-   assert(oChunk != NULL);
-   assert(oHeapStart != NULL);
-   assert(oHeapEnd != NULL);
+   assert(Chunk != NULL);
+   assert(HeapStart != NULL);
+   assert(HeapEnd != NULL);
 
-   if (oChunk < oHeapStart)
+   if (Chunk < HeapStart)
       {fprintf(stderr, "Bad heap start\n"); return 0; }
-   if (oChunk >= oHeapEnd)
+   if (Chunk >= HeapEnd)
       {fprintf(stderr, "Bad heap end\n"); return 0; }
-   if (Chunk_getUnits(oChunk) == 0)
+   if (Chunk_getUnits(Chunk) == 0)
       {fprintf(stderr, "Zero units\n"); return 0; }
-   if (Chunk_getUnits(oChunk) < MIN_UNITS_PER_CHUNK)
+   if (Chunk_getUnits(Chunk) < MIN_UNITS_PER_CHUNK)
       {fprintf(stderr, "Bad size\n"); return 0; }
-   if (oChunk + Chunk_getUnits(oChunk) > oHeapEnd)
+   if (Chunk + Chunk_getUnits(Chunk) > HeapEnd)
       {fprintf(stderr, "Bad chunk end\n"); return 0; }
-   if (Chunk_getUnits(oChunk) != Chunk_getFooterUnits(oChunk))
+   if (Chunk_getUnits(Chunk) != Chunk_getFooterUnits(Chunk))
       {fprintf(stderr, "Inconsistent sizes\n"); return 0; }
    return 1;
 }
