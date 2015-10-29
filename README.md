@@ -19,17 +19,17 @@
 ## K&R implementation  
 
 >> ### Free list  
-	– Free block with header (pointer and size) and user data  
-	– Align the header with the largest data type  
-	– Circular singly linked list of free blocks arranged in order of increasing memory address  
+Free block with header (pointer and size) and user data  
+Align the header with the largest data type  
+Circular singly linked list of free blocks arranged in order of increasing memory address  
 >> ### Malloc  
-	– Allocate memory in multiples of header size  
-	– Find the first element in the free list that is large enough (first fit)  
-	– If block is larger than required, split it  
-	– Allocate more memory, if block of required size is not found  
+Allocate memory in multiples of header size  
+Find the first element in the free list that is large enough (first fit)  
+If block is larger than required, split it  
+Allocate more memory, if block of required size is not found  
 >> ### Free  
-	– Put a block back in the free list  
-	– Coalesce with adjacent blocks on either side, if any  
+Put a block back in the free list  
+Coalesce with adjacent blocks on either side, if any  
 
 .................................................................................................................................
 
