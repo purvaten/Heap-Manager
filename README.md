@@ -106,28 +106,28 @@ Coalesce with adjacent blocks on either side, if any
 ## Implementation Details  
 
 >> #### Initially  
-	– Large chunk of memory is allocated using malloc()  
-		(K&R uses sbrk() and brk(). I am not using OS calls because I am not familiar with them)  
-	– Pointers are kept at beginning and end of this memory chunk. (HeapStart and HeapEnd)  
-		They are used only to validate that memory allocated lies between those 2 ends  
-	– Free list array bin pointers set to NULL (using static allocation)  
+>> – Large chunk of memory is allocated using malloc()  
+>> – (K&R uses sbrk() and brk(). I am not using OS calls because I am not familiar with them)  
+>> – Pointers are kept at beginning and end of this memory chunk. (HeapStart and HeapEnd)  
+>> – They are used only to validate that memory allocated lies between those 2 ends  
+>> – Free list array bin pointers set to NULL (using static allocation)  
 
 >> #### When my_malloc() is called  
-	– Jumps to index in free list to check for availibility of chunk of that size  
-	– If not found, goes to next index (and this continues) until block of exact or greater size is found  
-	– If last bin is reached scans entire bin and if required size is still not available requests more memory    
-	– Splits the chunk only if size obtained after splitting is greater than or equal to minimum size allowed for a block  
-	– Remove split chunk from old location and place in new array index depending on size of the split chunk  
-	– Check if chunks at previous and next memory locations are free  
-	– If so, remove them from their location, coalesce with current chunks and place in new location in free array  
-	– Always insert at beginning of link structure for particular bin in array (constant time)  
-	– Return pointer to the other part of split chunk to user and set its status as "being used"  
+>> –Jumps to index in free list to check for availibility of chunk of that size  
+>> –If not found, goes to next index (and this continues) until block of exact or greater size is found  
+>> – If last bin is reached scans entire bin and if required size is still not available requests more memory    
+>> – Splits the chunk only if size obtained after splitting is greater than or equal to minimum size allowed for a block  
+>> – Remove split chunk from old location and place in new array index depending on size of the split chunk  
+>> – Check if chunks at previous and next memory locations are free  
+>> – If so, remove them from their location, coalesce with current chunks and place in new location in free array  
+>> – Always insert at beginning of link structure for particular bin in array (constant time)  
+>> – Return pointer to the other part of split chunk to user and set its status as "being used"  
 
 >> #### When my_free() is called  
-	– Status of the chunk is changed to "free"  
-	– Chunk is placed in appropriate bin in free list array  
-	– Check if chunks at previous and next memory locations are free  
-	– If so, remove them from their location and coalesce with current chunks and place in new location in free array  
+>> – Status of the chunk is changed to "free"  
+>> – Chunk is placed in appropriate bin in free list array  
+>> – Check if chunks at previous and next memory locations are free  
+>> – If so, remove them from their location and coalesce with current chunks and place in new location in free array  
 
 .................................................................................................................................
 
