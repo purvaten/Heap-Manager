@@ -36,15 +36,15 @@ Coalesce with adjacent blocks on either side, if any
 ## Limitations of K&R implementation  
 
 >> #### Malloc requires scanning the free list (linear time)  
-	– To find the first free block that is big enough  
-	– Block found may still not be best fit  
+>> – To find the first free block that is big enough  
+>> – Block found may still not be best fit  
 
 >> #### Free requires scanning the free list (linear time)  
-	– To find the location to insert the to-be-freed block  
+>> – To find the location to insert the to-be-freed block  
 
 >> #### Large amount of Fragmentation  
-	– Decrease in efficeincy  
-	– Reduction in probability of getting next blocks of exact size  
+>> – Decrease in efficeincy  
+>> – Reduction in probability of getting next blocks of exact size  
 
 .................................................................................................................................
 
@@ -53,14 +53,14 @@ Coalesce with adjacent blocks on either side, if any
 >> Split only if the split chunk is large enough to meet smallest my_malloc() request (1 byte)  
 
 >> ### Faster free (constant time)  
-	– Size information in both header and footer  
-	– Next and previous free-list pointers in header and footer  
-	– Free block is directly placed at beginning of linked structre in appropriate bin  
+>> – Size information in both header and footer  
+>> – Next and previous free-list pointers in header and footer  
+>> – Free block is directly placed at beginning of linked structre in appropriate bin  
 
 >> ### Faster malloc (constant time)  
-	– Separate free list for free chunks of different sizes  
-	– One bin per chunk size (except last bin)  
-	– One bin for a range of sizes (only for last bin)  
+>> – Separate free list for free chunks of different sizes  
+>> – One bin per chunk size (except last bin)  
+>> – One bin for a range of sizes (only for last bin)  
 
 .................................................................................................................................
 
@@ -113,8 +113,8 @@ Coalesce with adjacent blocks on either side, if any
 >> – Free list array bin pointers set to NULL (using static allocation)  
 
 >> #### When my_malloc() is called  
->> –Jumps to index in free list to check for availibility of chunk of that size  
->> –If not found, goes to next index (and this continues) until block of exact or greater size is found  
+>> – Jumps to index in free list to check for availibility of chunk of that size  
+>> – If not found, goes to next index (and this continues) until block of exact or greater size is found  
 >> – If last bin is reached scans entire bin and if required size is still not available requests more memory    
 >> – Splits the chunk only if size obtained after splitting is greater than or equal to minimum size allowed for a block  
 >> – Remove split chunk from old location and place in new array index depending on size of the split chunk  
@@ -144,24 +144,24 @@ Coalesce with adjacent blocks on either side, if any
 >> #### HeapMgr_isValid()   
 
 >> ##### Checks the following –  
-	– Check to make sure the first MIN_UNITS_PER_CHUNK bins do not contain anything   
-	– Check if all chunks are valid  
-	– Check to make sure there are no adjacent free chunks  
-	– Check if each foward link is matched with the correct backwards link  
-	– Check if each chunk in the bin is of the right size  
-	– Checks if each chunk in the bin is set to free  
-	– Make sure all free chunks are in the free list  
-	– Check if the free list in each bin is a complete loop (same number of bins while traversing back and forth)  
+>> – Check to make sure the first MIN_UNITS_PER_CHUNK bins do not contain anything   
+>> – Check if all chunks are valid  
+>> – Check to make sure there are no adjacent free chunks  
+>> – Check if each foward link is matched with the correct backwards link  
+>> – Check if each chunk in the bin is of the right size  
+>> – Checks if each chunk in the bin is set to free  
+>> – Make sure all free chunks are in the free list  
+>> – Check if the free list in each bin is a complete loop (same number of bins while traversing back and forth)  
 
 >> #### Chunk_isValid() –  
 
 >> ##### Checks the following –  
-	– Address of Chunk should not be less than HeapStart    
-	– Address of Chunk should not be greater than or equal to HeapEnd   
-	– Size of Chunk should not be equal to zero  
-	– SIze of chunk should not be less than MIN_UNITS_PER_CHUNK   
-	– Address of chunk + size should not exceed HeapEnd  
-	– Size of the chunk as stored in footer should be same as size stored in header  
+>> – Address of Chunk should not be less than HeapStart    
+>> – Address of Chunk should not be greater than or equal to HeapEnd   
+>> – Size of Chunk should not be equal to zero  
+>> – SIze of chunk should not be less than MIN_UNITS_PER_CHUNK   
+>> – Address of chunk + size should not exceed HeapEnd  
+>> – Size of the chunk as stored in footer should be same as size stored in header  
 
 >> #### PrintBin() –  
 
@@ -180,18 +180,17 @@ Coalesce with adjacent blocks on either side, if any
 	– Random test case  
 
 >> #### Fixed Simple test case :  
-	– Used primarily during initial testing   
-	– my_malloc() and my_free() are implemented by hardcoding values  
-	– Gives a simple idea about how functions work  
-	– Easy for debugging  
+>> – Used primarily during initial testing   
+>> – my_malloc() and my_free() are implemented by hardcoding values  
+>> – Gives a simple idea about how functions work  
+>> – Easy for debugging  
 
 >> #### Random test case :  
-	– This is used after major bugs found during simple testing were fixed  
-	– Asks user for number of chunks to be generated and maximum size a chunk can have  
-	– Randomly allocates memory using my_malloc()  
-	– If random size repeats itself in next iteration free that chunk using my_free()  
-		after checking that its contents haven't been corrupted  
-	– After all allocations are done, free them all using my_free() if they haven't already been freed  
+>> – This is used after major bugs found during simple testing were fixed  
+>> – Asks user for number of chunks to be generated and maximum size a chunk can have  
+>> – Randomly allocates memory using my_malloc()  
+>> – If random size repeats itself in next iteration free that chunk using my_free() after checking that its contents haven't been corrupted  
+>> – After all allocations are done, free them all using my_free() if they haven't already been freed  
 
 .................................................................................................................................
 
