@@ -10,7 +10,6 @@
 enum {FALSE, TRUE};
 
 /*--------------------------------------------------------------------*/
-#ifndef NDEBUG
 #define ASSURE(i) assure(i, __LINE__)
 
 static void assure(int iSuccessful, int iLineNum)
@@ -22,7 +21,6 @@ static void assure(int iSuccessful, int iLineNum)
    if (! iSuccessful)
       fprintf(stderr, "Test at line %d failed.\n", iLineNum);
 }
-#endif
 /*--------------------------------------------------------------------*/
 
 /* Memory chunks allocated by my_malloc(). */
@@ -55,18 +53,14 @@ void testRandomRandom(int iCount, int iSize)
       Chunks[iRand] = (char *)my_malloc((size_t)aiSizes[iRand]);
       assert(Chunks[iRand] != NULL);
 
-      #ifndef NDEBUG
-      {
-         /* Fill the newly allocated chunk with some character.
-            The character is derived from the last digit of iRand.
-            So later, given iRand, we can check to make sure that
-            the contents haven't been corrupted. */
-         int iCol;
-         char c = (char)((iRand % 10) + '0');
-         for (iCol = 0; iCol < aiSizes[iRand]; iCol++)
-            Chunks[iRand][iCol] = c;
-      }
-      #endif
+      /* Fill the newly allocated chunk with some character.
+         The character is derived from the last digit of iRand.
+         So later, given iRand, we can check to make sure that
+         the contents haven't been corrupted. */
+      int iCol;
+      char c = (char)((iRand % 10) + '0');
+      for (iCol = 0; iCol < aiSizes[iRand]; iCol++)
+         Chunks[iRand][iCol] = c;
 
       /* Assign some random integer to iRand. */
       iRand = rand() % iLogicalArraySize;
@@ -74,16 +68,12 @@ void testRandomRandom(int iCount, int iSize)
       /* If Chunks[iRand] contains a chunk, free it and set Chunks[iRand] to NULL. */
       if (Chunks[iRand] != NULL) {
 
-         #ifndef NDEBUG
-         {
-            /* Check the chunk that is about to be freed to make sure
-               that its contents haven't been corrupted. */
-            int iCol;
-            char c = (char)((iRand % 10) + '0');
-            for (iCol = 0; iCol < aiSizes[iRand]; iCol++)
-               ASSURE(Chunks[iRand][iCol] == c);
-         }
-         #endif
+         /* Check the chunk that is about to be freed to make sure
+            that its contents haven't been corrupted. */
+         int iCol;
+         char c = (char)((iRand % 10) + '0');
+         for (iCol = 0; iCol < aiSizes[iRand]; iCol++)
+            ASSURE(Chunks[iRand][iCol] == c);
 
          my_free(Chunks[iRand]);
          Chunks[iRand] = NULL;
@@ -94,16 +84,12 @@ void testRandomRandom(int iCount, int iSize)
    for (i = 0; i < iLogicalArraySize; i++) {
       if (Chunks[i] != NULL) {
 
-         #ifndef NDEBUG
-         {
-            /* Check the chunk that is about to be freed to make sure
-               that its contents haven't been corrupted. */
-            int iCol;
-            char c = (char)((i % 10) + '0');
-            for (iCol = 0; iCol < aiSizes[i]; iCol++)
-               ASSURE(Chunks[i][iCol] == c);
-         }
-         #endif
+         /* Check the chunk that is about to be freed to make sure
+            that its contents haven't been corrupted. */
+         int iCol;
+         char c = (char)((i % 10) + '0');
+         for (iCol = 0; iCol < aiSizes[i]; iCol++)
+            ASSURE(Chunks[i][iCol] == c);
 
          my_free(Chunks[i]);
          Chunks[i] = NULL;

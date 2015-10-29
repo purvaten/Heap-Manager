@@ -185,8 +185,6 @@ Chunk_T Chunk_getPrevInMem(Chunk_T Chunk, Chunk_T HeapStart)
 
 /*--------------------------------------------------------------------*/
 
-#ifndef NDEBUG
-
 size_t Chunk_getFooterUnits(Chunk_T Chunk)
 
 /* Return the number of units as stored in Chunk's footer. */
@@ -197,11 +195,7 @@ size_t Chunk_getFooterUnits(Chunk_T Chunk)
    return (Chunk + Chunk_getUnits(Chunk) - 1)->uiUnits;
 }
 
-#endif
-
 /*--------------------------------------------------------------------*/
-
-#ifndef NDEBUG
 
 int Chunk_isValid(Chunk_T Chunk, Chunk_T HeapStart, Chunk_T HeapEnd)
 
@@ -227,5 +221,3 @@ int Chunk_isValid(Chunk_T Chunk, Chunk_T HeapStart, Chunk_T HeapEnd)
       {fprintf(stderr, "Inconsistent sizes\n"); return 0; }
    return 1;
 }
-
-#endif

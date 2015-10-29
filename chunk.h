@@ -60,10 +60,8 @@ Chunk_T Chunk_getPrevInMem(Chunk_T Chunk, Chunk_T oHeapStart);
    previous Chunk.  The previous Chunk's number of units must be set
    properly for this function to work. */
 
-#ifndef NDEBUG
 int Chunk_isValid(Chunk_T Chunk, Chunk_T oHeapStart, Chunk_T oHeapEnd);
 /* Return 1 (TRUE) if Chunk is valid, notably with respect to
    psHeapStart and psHeapEnd, or 0 (FALSE) otherwise. */
-#endif
 
 #endif
