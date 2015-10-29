@@ -1,8 +1,8 @@
-HEAP MEMORY MANAGER  
+# HEAP MEMORY MANAGER  
 
 .................................................................................................................................
 
-What does the program do?  
+## What does the program do?  
 
 >> Manage Heap memory and improve on K&R's implementation of Dynamic Memory Management  
 	as described in Section 8.7 (A Storage Allocator)  
@@ -10,30 +10,30 @@ What does the program do?
 
 .................................................................................................................................
 
-Purpose  
+## Purpose  
 
 >> Getting a better understanding of how Dynamic Memory Management actually occurs  
 
 .................................................................................................................................
 
-K&R implementation  
+## K&R implementation  
 
->> Free list  
+>> ### Free list  
 	– Free block with header (pointer and size) and user data  
 	– Align the header with the largest data type  
 	– Circular singly linked list of free blocks arranged in order of increasing memory address  
->> Malloc  
+>> ### Malloc  
 	– Allocate memory in multiples of header size  
 	– Find the first element in the free list that is large enough (first fit)  
 	– If block is larger than required, split it  
 	– Allocate more memory, if block of required size is not found  
->> Free  
+>> ### Free  
 	– Put a block back in the free list  
 	– Coalesce with adjacent blocks on either side, if any  
 
 .................................................................................................................................
 
-Limitations of K&R implementation  
+## Limitations of K&R implementation  
 
 >> Malloc requires scanning the free list (linear time)  
 	– To find the first free block that is big enough  
@@ -48,7 +48,7 @@ Limitations of K&R implementation
 
 .................................................................................................................................
 
-Improvements brought about by Program  
+## Improvements brought about by Program  
 
 >> Split only if the split chunk is large enough to meet smallest my_malloc() request (1 byte)  
 >> Faster free (constant time)  
@@ -62,7 +62,7 @@ Improvements brought about by Program
 
 .................................................................................................................................
 
-Data Structures used  
+## Data Structures used  
 
 >> Data is being stored in 2 main data structures :  
 	– Chunk structure  
@@ -70,37 +70,37 @@ Data Structures used
 
 >> Chunk structure :  
 
->> Memory is stored in the form of a chunk which has 3 main parts -  
-– Header  
-– Actual memory as requested by user   
-– Footer  
+>> Memory is stored in the form of a chunk which has 3 main parts –  
+	– Header  
+	– Actual memory as requested by user   
+	– Footer  
 
-– Header has following data -  
+>> Header has following data –  
 	- Size of the chunk (header size, footer size and actual memory size)  
 	- Status of the chunk (whether free or in use)  
 	- Pointer to address of adjacent chunk (next chunk in the link structure)  
-– Actual memory -  
-		- Stored in multiples of UnitSize (size of header/footer)  
-– Footer has following data -  
-		- Size of the chunk (header size, footer size and actual memory size)  
+>> Actual memory –  
+	- Stored in multiples of UnitSize (size of header/footer)  
+>> Footer has following data –  
+	- Size of the chunk (header size, footer size and actual memory size)  
 
 >> Free Bin Array with Link List :  
 
-– We maintain a fixed size array where each index represents a bin with a pointer to a NULL terminitaed linked list  
-– This is a linked list of chunks of the same size  
-– If size of a certain chunk exceeds max size of array it is placed in the last bin  
+	– We maintain a fixed size array where each index represents a bin with a pointer to a NULL terminitaed linked list  
+	– This is a linked list of chunks of the same size  
+	– If size of a certain chunk exceeds max size of array it is placed in the last bin  
 
 
->>Use of Footer  
+>> Use of Footer  
 
-– Size of previous chunk in memory is easy accessible due to Footer due to following -  
+>> Size of previous chunk in memory is easy accessible due to Footer due to following –  
 	- Size of header/footer is UnitSize and constant  
 	- Footer stores information regarding size of chunk  
 	- Chunks in free list can be maintained in any order (independent of memory address)  
 
 .................................................................................................................................
 
-Implementation Details  
+## Implementation Details  
 
 >> Initially  
 	– Large chunk of memory is allocated using malloc()  
@@ -128,7 +128,7 @@ Implementation Details
 
 .................................................................................................................................
 
-Debugging  
+## Debugging  
 
 >> Following methods have been used for debugging the program :  
 	– HeapMgr_isValid()		code written  
@@ -140,7 +140,7 @@ Debugging
 
 >> HeapMgr_isValid()   
 
-Checks the following -  
+>> Checks the following –  
 	– Check to make sure the first MIN_UNITS_PER_CHUNK bins do not contain anything   
 	– Check if all chunks are valid  
 	– Check to make sure there are no adjacent free chunks  
@@ -150,9 +150,9 @@ Checks the following -
 	– Make sure all free chunks are in the free list  
 	– Check if the free list in each bin is a complete loop (same number of bins while traversing back and forth)  
 
->> Chunk_isValid() -  
+>> Chunk_isValid() –  
 
-Checks the following -  
+>> Checks the following –  
 	– Address of Chunk should not be less than HeapStart    
 	– Address of Chunk should not be greater than or equal to HeapEnd   
 	– Size of Chunk should not be equal to zero  
@@ -160,17 +160,17 @@ Checks the following -
 	– Address of chunk + size should not exceed HeapEnd  
 	– Size of the chunk as stored in footer should be same as size stored in header  
 
->> PrintBin() -  
+>> PrintBin() –  
 
-– Prints link structure of all bins which are not empty i.e. size of all the chunks for a given bin   
+	– Prints link structure of all bins which are not empty i.e. size of all the chunks for a given bin   
 
->> PrintMemory() -  
+>> PrintMemory() –  
 
-– Prints the size and status of all the chunks in physical memory from HeapStart to HeapEnd  
+	– Prints the size and status of all the chunks in physical memory from HeapStart to HeapEnd  
 
 .................................................................................................................................
 
-Testing  
+## Testing  
 
 >>Two test conditions are provided :  
 	– Fixed Simple test case  
@@ -192,7 +192,7 @@ Testing
 
 .................................................................................................................................
 
-How to run the program  
+## How to run the program  
 
 >> Run following on terminal :  
 make  
