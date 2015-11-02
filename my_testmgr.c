@@ -5,7 +5,7 @@
 #include <assert.h>
 
 /* The maximum allowable number of calls of HeapMgr_malloc(). */
-#define MAX_CALLS      1000000
+#define MAX_CALLS      10000
 
 enum {FALSE, TRUE};
 
@@ -97,21 +97,67 @@ void testRandomRandom(int iCount, int iSize)
    }
 }
 
-void mytest()
+/*--------------------------------------------------------------------*/
 
-/* Testing giving fixed values */
+void malloc_free_test()
 
- {
-   int *p, *q, *r;
+/* Testing my_malloc() & my_free() giving fixed values */
 
-   p = (int *)my_malloc(64);
-   q = (int *)my_malloc(50);
-   my_free(p);
-   r = (int *)my_malloc(160);
-   my_free(r);
-   p = (int *)my_malloc(0);
+{
+   char *p, *q, *r, *s;
+
+   p = (char *)my_malloc(28);
+ 
+   q = (char *)my_malloc(160);
+   r = (char *)my_malloc(0);
+
    my_free(q);
- }
+
+   s = (char *)my_malloc(100);
+
+   my_free(p);
+   my_free(r);
+   my_free(s);
+}
+
+void calloc_test()
+
+/* Testing my_calloc() giving fixed valus */
+
+{
+   char *p;
+   int i;
+   p = my_calloc(5, 20);
+   printf("Printing all 100 characters : \n");
+
+   for (i = 0; i < 100; i++) {
+     printf("%d ", p[i]);
+   }
+   printf("\n");
+}
+
+void realloc_test()
+
+/* Testing my_realloc() giving fixed values */
+
+{
+   char *p;
+
+   p = (char *)my_malloc(28);
+   strcpy(p, "abcdefghijklmnopqrstuvwxyz");
+   p = (char *)my_realloc(p, 150);
+   printf("Initial Result : %s\n", p);
+
+   p[12] = '\0';
+   p = (char *)my_realloc(p, 12);
+   printf("Intermediate Result : %s\n", p);
+
+   p = (char *)my_realloc(p, 20);
+   printf("Final Result : %s\n", p);
+   my_free(p);
+}
+
+/*--------------------------------------------------------------------*/
 
 int main(int argc, char *argv[])
 
@@ -122,16 +168,26 @@ int main(int argc, char *argv[])
    int option, n, size;
 
    printf("Enter option to test the code : \n");
-   printf("1) Simple fixed test case\n");
-   printf("2) Random test case\n");
+   printf("1) Test for my_malloc() and my_free()\n");
+   printf("2) Test for my_calloc()\n");
+   printf("3) Test for my_realloc()\n");
+   printf("4) Random test case\n");
    scanf("%d", &option);
 
    switch (option) {
       case 1 :
-         mytest();
+         malloc_free_test();
          break;
 
       case 2 :
+         calloc_test();
+         break;
+
+      case 3 :
+         realloc_test();
+         break;
+
+      case 4 :
          printf("Enter the number of chunks : \n");
          scanf("%d", &n);
          printf("Enter the max size boundary : \n");
@@ -145,3 +201,5 @@ int main(int argc, char *argv[])
    }
    return 0;
 }
+
+/*--------------------------------------------------------------------*/

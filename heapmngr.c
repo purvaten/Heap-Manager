@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
+#include <unistd.h>
 #include "heapmngr.h"
 #include "chunk.h"
-#define MAX_SIZE			100	/* Units */
+#define MAX_SIZE			1024	/* Units */
 #define NUM_BINS			1024
 #define MIN_UNITS_FROM_OS	1024
 
@@ -13,7 +15,7 @@ static Chunk_T HeapStart = NULL;
 /* Starting address pointer of avalilable memory set to NULL */
 
 static Chunk_T HeapEnd = NULL;
-/* Ending address pointer of avaliable memory set to NULL. */
+/* Ending address pointer of avaliable memory set to NULL */
 
 static Chunk_T freebinArray[NUM_BINS];
 /* Array of bins to doubly linked NUL terminated free lists of different bin sizes */
@@ -41,21 +43,21 @@ void PrintBin()
 
 void PrintMemory()
 
-/* Printing all chunks in actual memory from HeapStart to HeapEnd
+/* Prints all chunks in physical memory from HeapStart to HeapEnd
    i.e. their size and status */
 
 {
    Chunk_T ChunkPtr = HeapStart;
 
-   while (ChunkPtr != HeapEnd && ChunkPtr != NULL) {
-      if (Chunk_getStatus(ChunkPtr) == CHUNK_FREE)
-         printf("\tSTATUS : FREE  , ");
-      else
-         printf("\tSTATUS : IN USE, ");
+  	while (ChunkPtr != HeapEnd && ChunkPtr != NULL) {
+   		if (Chunk_getStatus(ChunkPtr) == CHUNK_FREE)
+      		printf("\tSTATUS : FREE  , ");
+    	else
+    		printf("\tSTATUS : IN USE, ");
 
-      printf("SIZE : %d Chunks\n", (int)Chunk_getUnits(ChunkPtr));
-      ChunkPtr = Chunk_getNextInMem(ChunkPtr, HeapEnd);
-   }
+    	printf("SIZE : %d Chunks\n", (int)Chunk_getUnits(ChunkPtr));
+    	ChunkPtr = Chunk_getNextInMem(ChunkPtr, HeapEnd);
+    }
 }
 /*--------------------------------------------------------------------*/
 
@@ -65,68 +67,70 @@ int HeapMgr_isValid()
    0 (FALSE) otherwise. */
 
 {
-   int iBin;
-   Chunk_T Chunk;
-   Chunk_T NextList;
-   Chunk_T NextMem;
+	int iBin;
+	Chunk_T Chunk;
+	Chunk_T NextList;
+	Chunk_T NextMem;
 
-   int i = 0;
-   
-   Chunk_T MemChunk;
-   Chunk_T ListChunk;
-   
-   if (HeapStart == NULL)
-   {fprintf(stderr, "Uninitialized heap start\n"); return 0; }
-   if (HeapEnd == NULL)
-   {fprintf(stderr, "Uninitialized heap end\n"); return 0; }
+	int i = 0;
 
-   if (HeapStart == HeapEnd) {
-      for (iBin = 0; iBin < NUM_BINS; iBin++) {
-        if (freebinArray[iBin] != NULL) {
-        	fprintf(stderr, "Inconsistent empty heap\n");
-        	return 0;
-         }
-      }
-      return 1;
-   }
+	Chunk_T MemChunk;
+	Chunk_T ListChunk;
 
-   /* Check to make sure the first MIN_UNITS_PER_CHUNK bins do not contain anything */
-   for (iBin = 0; iBin < MIN_UNITS_PER_CHUNK; iBin++) {
-      if (freebinArray[iBin] != NULL) {
-        fprintf(stderr, "Chunks placed in too small bins, Bin = %d\n", iBin);
-        return 0;
-      }
-   }
+	if (HeapStart == NULL) {
+		fprintf(stderr, "Uninitialized heap start\n"); return 0;
+	}
+	if (HeapEnd == NULL) {
+		fprintf(stderr, "Uninitialized heap end\n"); return 0;
+	}
 
-   /* Check to make sure the first free Chunk in each bin has a null prev list chunk */
-   for (iBin = 0; iBin < NUM_BINS; iBin++) {
-      Chunk = freebinArray[iBin];
-      if (Chunk != NULL) {
-        if (Chunk_getPrevInList(Chunk) != NULL) {
-        	fprintf(stderr, "First Free Chunk has Faulty backwards pointer, ""Bin = %d\n", iBin);
-        	return 0;
+	if (HeapStart == HeapEnd) {
+		for (iBin = 0; iBin < NUM_BINS; iBin++) {
+			if (freebinArray[iBin] != NULL) {
+				fprintf(stderr, "Inconsistent empty heap\n");
+				return 0;
+			}
+		}
+		return 1;
+	}
+
+	/* Check to make sure the first MIN_UNITS_PER_CHUNK bins do not contain anything */
+	for (iBin = 0; iBin < MIN_UNITS_PER_CHUNK; iBin++) {
+		if (freebinArray[iBin] != NULL) {
+			fprintf(stderr, "Chunks placed in too small bins, Bin = %d\n", iBin);
+	        return 0;
+	    }
+	}
+
+	/* Check to make sure the first free Chunk in each bin has a null prev list chunk */
+	for (iBin = 0; iBin < NUM_BINS; iBin++) {
+		Chunk = freebinArray[iBin];
+		if (Chunk != NULL) {
+			if (Chunk_getPrevInList(Chunk) != NULL) {
+        		fprintf(stderr, "First Free Chunk has Faulty backwards pointer, ""Bin = %d\n", iBin);
+        		return 0;
+        	}
         }
-      }
-   }
+    }
 
-   /* Check if all chunks are valid */
-   /* We already know that oHeapStart != oHeapEnd */
-   Chunk = HeapStart;
-   assert(Chunk_isValid(Chunk, HeapStart, HeapEnd));
-   
-   Chunk = Chunk_getNextInMem(Chunk, HeapEnd);
-   while (Chunk != NULL) {
-   	assert(Chunk_isValid(Chunk, HeapStart, HeapEnd));
-   	Chunk = Chunk_getNextInMem(Chunk, HeapEnd);
-   } 
-   
-   /* Check to make sure there are no adjacent free chunks */
-   /* We already know that oHeapStart != oHeapEnd */
-   Chunk = HeapStart;
-   NextMem = Chunk_getNextInMem(Chunk, HeapEnd);
-   
+    /* Check if all chunks are valid */
+    /* We already know that oHeapStart != oHeapEnd */
+    Chunk = HeapStart;
+    assert(Chunk_isValid(Chunk, HeapStart, HeapEnd));
+
+    Chunk = Chunk_getNextInMem(Chunk, HeapEnd);
+    while (Chunk != NULL) {
+   		assert(Chunk_isValid(Chunk, HeapStart, HeapEnd));
+   		Chunk = Chunk_getNextInMem(Chunk, HeapEnd);
+   	}
+
+   	/* Check to make sure there are no adjacent free chunks */
+   	/* We already know that oHeapStart != oHeapEnd */
+   	Chunk = HeapStart;
+   	NextMem = Chunk_getNextInMem(Chunk, HeapEnd);
+
    	while (NextMem != NULL) {
-		if (Chunk_getStatus(Chunk) == CHUNK_FREE && Chunk_getStatus(NextMem) == CHUNK_FREE) {
+   		if (Chunk_getStatus(Chunk) == CHUNK_FREE && Chunk_getStatus(NextMem) == CHUNK_FREE) {
    			fprintf(stderr, "Uncoalesced free chunks\n");
        		return 0;
     	}
@@ -152,7 +156,7 @@ int HeapMgr_isValid()
         	}
       	}
     }
-   
+
     /* Check if each chunk in the bin is of the right size */
     /* Also checks if each chunk in the bin is set to free */
     for (iBin = 0; iBin < NUM_BINS - 1; iBin++) {
@@ -167,14 +171,14 @@ int HeapMgr_isValid()
             	fprintf(stderr, "Used Chunk in Free List, ""Bin = %d\n", iBin);
             	return 0;
        		}
-         
-        	Chunk = Chunk_getNextInList(Chunk);
+
+       		Chunk = Chunk_getNextInList(Chunk);
 		}
 	}
-   
-   /* Make sure all free chunks are in the free list */
-   MemChunk = HeapStart;
-   ListChunk = freebinArray[0];
+
+	/* Make sure all free chunks are in the free list */
+	MemChunk = HeapStart;
+	ListChunk = freebinArray[0];
    
    	while (MemChunk != NULL) {
       	/* If MemChunk is free, make sure it is in free list */
@@ -201,11 +205,11 @@ int HeapMgr_isValid()
         	}
       	}
       	MemChunk = Chunk_getNextInMem(MemChunk, HeapEnd);
-   }
-   
-   /* Check if the free list in each bin is a complete loop */
-   /* i.e. same number of chunks going fowards and backwards and that we end up in the same spot */
-	for (iBin = 0; iBin < NUM_BINS; iBin++) {
+    }
+
+    /* Check if the free list in each bin is a complete loop */
+    /* i.e. same number of chunks going fowards and backwards and that we end up in the same spot */
+    for (iBin = 0; iBin < NUM_BINS; iBin++) {
     	Chunk = freebinArray[iBin];
       	if (Chunk != NULL) {
         	/*going fowards*/
@@ -269,24 +273,34 @@ void removefromList(Chunk_T chunk_ptr)
 
 void InsertinBin(Chunk_T chunk_ptr)
 
-/* Inserts chunk at beginning of link structure in respective bin */
+/* Inserts chunk in link structure in respective bin */
 
 {	
-	Chunk_T binptr;
+	Chunk_T binptr, prev_chunk;
 	size_t chunk_size = Chunk_getUnits(chunk_ptr);
+	size_t temp_size = chunk_size;
 
 	if (chunk_size > NUM_BINS - 1) {
 		binptr = freebinArray[NUM_BINS - 1];
-		chunk_size = NUM_BINS - 1;
+		temp_size = NUM_BINS - 1;
 	}
 	else
 		binptr = freebinArray[chunk_size];
 
-	if (binptr != NULL)
-		Chunk_setPrevInList(binptr, chunk_ptr);
+	/* Traversing the link list */
+	while (binptr != NULL && Chunk_getUnits(binptr) < chunk_size)
+		binptr = Chunk_getNextInList(binptr);
+
+	/* Insert before binptr in the link structure */
 	Chunk_setNextInList(chunk_ptr, binptr);
-	Chunk_setPrevInList(chunk_ptr, NULL);
-	freebinArray[chunk_size] = chunk_ptr;
+	if (binptr != NULL) {
+		prev_chunk = Chunk_getPrevInList(binptr);
+		Chunk_setPrevInList(chunk_ptr, prev_chunk);
+	}
+	else {
+		freebinArray[temp_size] = chunk_ptr;
+		Chunk_setPrevInList(chunk_ptr, NULL);
+	}
 }
 
 
@@ -306,8 +320,8 @@ Chunk_T useChunk(Chunk_T chunk_ptr, size_t Units, int ibin)
 	size_t splitchunk_size = chunk_ptr_val - Units;
 	Chunk_T temp_ptr, splitchunk;
 
-	if (chunk_ptr_val < Units + MIN_UNITS_PER_CHUNK) {
 	/* Allocate all the memory */
+	if (chunk_ptr_val < Units + MIN_UNITS_PER_CHUNK) {
 		/* Update status */
 		Chunk_setStatus(chunk_ptr, CHUNK_INUSE);
 
@@ -338,29 +352,7 @@ Chunk_T useChunk(Chunk_T chunk_ptr, size_t Units, int ibin)
 	return temp_ptr;
 }
 
-Chunk_T getmoreMemory(size_t Units)
-
-/* Mallocs additional memory enough to store Units number of units.
-	Create a new chunk, coalesce with prev and next chunks if free and place it at starting of array
-	in respective bin. Return pointer to this new chunk */
-
-{	
-	size_t UnitSize = Chunk_getUnitSize();
-	Chunk_T NewHeapStart = (Chunk_T) malloc(MAX_SIZE * UnitSize);
-	if (NewHeapStart == NULL)
-		return NULL;
-
-	Chunk_setUnits(NewHeapStart, MAX_SIZE);
-	InsertinBin(NewHeapStart);
-
-	HeapEnd = (Chunk_T)((char *)NewHeapStart + MAX_SIZE * UnitSize); /* Look into it later */
-
-	assert(Chunk_isValid(NewHeapStart, HeapStart, HeapEnd));
-	assert(Chunk_getStatus(NewHeapStart) == CHUNK_FREE);
-	assert(NewHeapStart == freebinArray[FindBin(Chunk_getUnits(NewHeapStart))]);
-
-	return NewHeapStart;
-}
+/* .................................................................................. */
 
 Chunk_T Chunk_coalesce(Chunk_T a_chunk_ptr, Chunk_T b_chunk_ptr)
 
@@ -391,6 +383,55 @@ Chunk_T Chunk_coalesce(Chunk_T a_chunk_ptr, Chunk_T b_chunk_ptr)
 	return a_chunk_ptr;
 }
 
+/* .................................................................................. */
+
+Chunk_T getmoreMemory(size_t uiUnits)
+
+/* Request more memory from the operating system -- enough to store
+   uiUnits units.  Create a new chunk, coalesce it with adjacent free
+   chunks, and insert into the start of its bin's free list. 
+   Returns the start of the new chunk. */
+
+{
+	Chunk_T Chunk;
+	Chunk_T PrevMem;
+	Chunk_T NewHeapEnd;
+
+	if (uiUnits < MAX_SIZE)
+		uiUnits = MAX_SIZE;
+
+	/* Move the program break. */
+	NewHeapEnd = (Chunk_T)((char *)HeapEnd + (uiUnits * Chunk_getUnitSize()));
+	if (NewHeapEnd < HeapEnd)  /* Check for overflow */
+		return NULL;
+	if (brk(NewHeapEnd) == -1)
+		return NULL;
+
+	Chunk = HeapEnd;
+	HeapEnd = NewHeapEnd;
+	PrevMem = Chunk_getPrevInMem(Chunk, HeapStart);
+
+	/* Set the fields of the new chunk */
+	Chunk_setUnits(Chunk, uiUnits);
+	Chunk_setStatus(Chunk, CHUNK_FREE);
+
+	/* Coalesce the last chunk in memory if it is free */
+	if ((PrevMem != NULL) && (Chunk_getStatus(PrevMem) == CHUNK_FREE)) {
+		removefromList(PrevMem);
+
+		Chunk = Chunk_coalesce(PrevMem, Chunk);
+	}
+
+
+	/* Add the new chunk to the front of its correct bin's free list. */
+	InsertinBin(Chunk);
+
+	assert(Chunk_isValid(Chunk, HeapStart, HeapEnd));
+	assert(Chunk_getStatus(Chunk) == CHUNK_FREE);
+	assert(Chunk == freebinArray[FindBin(Chunk_getUnits(Chunk))]);
+
+	return Chunk;
+}
 
 /* .................................................................................. */
 
@@ -412,17 +453,10 @@ void *my_malloc(size_t size)
 	Units = ((size - 1) / UnitSize) + 1;
 	Units = Units + 2;	/* For Header and Footer */
 
-	printf("ENTER MALLOC : Requested Size - %d bytes (%d Chunks)\n", (int)size, (int)Units);
-	printf("MEMORY MAP : IN THE BEGINNING\n");
-	PrintMemory();
-
 	/* Initialize if this is the first call */
 	if (HeapStart == NULL) {
-		HeapStart = (Chunk_T) malloc(MAX_SIZE * UnitSize);
-		Chunk_setUnits(HeapStart, MAX_SIZE);
-		/* Place this chunk in last bin */
-		InsertinBin(HeapStart);
-		HeapEnd = (Chunk_T)((char *)HeapStart + MAX_SIZE * UnitSize);
+		HeapStart = (Chunk_T)sbrk(0);
+		HeapEnd = HeapStart;
 	}
 
 	assert(HeapMgr_isValid());
@@ -440,10 +474,6 @@ void *my_malloc(size_t size)
 				assert(HeapMgr_isValid());
 				assert(Chunk_isValid(chunk_ptr, HeapStart, HeapEnd));
 
-				printf("MEMORY MAP : IN THE END\n");
-				PrintMemory();
-				printf("EXIT MALLOC\n");
-
 				return (void *)((char *)chunk_ptr + UnitSize);
 			}
 			chunk_ptr = Chunk_getNextInList(chunk_ptr);
@@ -452,13 +482,10 @@ void *my_malloc(size_t size)
 
 	/* Required memory is not found. Obtain new memory by doing malloc() */
 	chunk_ptr = getmoreMemory(Units);
-	if (chunk_ptr == NULL) {
-	/* malloc failed */
-		assert(HeapMgr_isValid());
 
-		printf("MEMORY MAP : IN THE END\n");
-		PrintMemory();
-		printf("EXIT MALLOC\n");
+	/* malloc failed */
+	if (chunk_ptr == NULL) {
+		assert(HeapMgr_isValid());
 
 		return NULL;
 	}
@@ -467,10 +494,6 @@ void *my_malloc(size_t size)
 	chunk_ptr = useChunk(chunk_ptr, Units, MAX_SIZE - 1);
 
 	assert(HeapMgr_isValid());
-
-	printf("MEMORY MAP : IN THE END\n");
-	PrintMemory();
-	printf("EXIT MALLOC\n");
 
 	return (void *)((char *)chunk_ptr + UnitSize);
 }
@@ -493,10 +516,6 @@ void my_free(void *region)
 
 	chunk_ptr = (Chunk_T)((char*)region - UnitSize);
 	assert(Chunk_isValid(chunk_ptr, HeapStart, HeapEnd));
-
-	printf("ENTER FREE : Size to be freed : %d Chunks\n", (int)Chunk_getUnits(chunk_ptr));
-	printf("MEMORY MAP : IN THE BEGINNING\n");
-	PrintMemory();
 
 	Chunk_setStatus(chunk_ptr, CHUNK_FREE);
 	NextMem = Chunk_getNextInMem(chunk_ptr, HeapEnd);
@@ -526,8 +545,72 @@ void my_free(void *region)
 	InsertinBin(chunk_ptr);
 
 	assert(HeapMgr_isValid());
+}
 
-	printf("MEMORY MAP : IN THE END\n");
-	PrintMemory();
-	printf("EXIT FREE\n");
+void *my_calloc(size_t nitems, size_t size)
+
+/* Allocate the requested memory, initialize it to zero and returns a pointer to the beginning of allocated region.
+	Returns NULL if memory allocation failed */
+
+{	
+	char *chunk_ptr;
+	size_t total_size = nitems * size;
+	chunk_ptr = (char *)my_malloc(total_size);
+
+	/* Setting all bytes to zero */
+	if (chunk_ptr != NULL)
+		chunk_ptr = memset(chunk_ptr, 0, (int)total_size);
+
+	return chunk_ptr;
+}
+
+void *my_realloc(void *ptr, size_t size)
+
+/* Resize the memory block pointed to by ptr that was previously allocated with a call to my_malloc or my_calloc.
+	Returns a pointer to the newly allocated memory, or NULL if the request fails. */
+
+{	
+	Chunk_T ptr_header, splitchunk;
+	size_t initialsize;
+	size_t UnitSize = Chunk_getUnitSize();
+	size_t size_units, splitchunk_size_units;	
+
+	Chunk_T new_ptr;
+
+	ptr_header = (Chunk_T)((char *)ptr - UnitSize);
+	initialsize = Chunk_getUnits(ptr_header);
+	size_units = (size - 1) / UnitSize + 3;
+
+	/* Change the chunk units in the header and return same pointer */
+	if (size_units < initialsize - 3) {
+		Chunk_setUnits(ptr_header, size_units);
+
+		/* Free next pointers */
+		/* Split the chunk, set size and status of the splitchunk and insert it in freebinArray */
+		splitchunk = Chunk_getNextInMem(ptr_header, HeapEnd);
+		splitchunk_size_units = initialsize - size_units;
+
+		Chunk_setUnits(splitchunk, splitchunk_size_units);
+		Chunk_setStatus(splitchunk, CHUNK_INUSE);
+
+		my_free((Chunk_T)((char *)splitchunk + UnitSize));
+
+		return ptr;
+	}
+
+	if (size_units <= initialsize)
+		return ptr;
+
+	new_ptr = (Chunk_T)my_malloc(size);
+
+	/* Copying byte by byte to new location */
+	if (new_ptr != NULL) {
+		new_ptr = (Chunk_T) strncpy((char *)new_ptr, (char *)ptr, (initialsize - 2) * UnitSize);
+		Chunk_setUnits((Chunk_T)((char *)new_ptr - UnitSize), size_units);
+		Chunk_setStatus((Chunk_T)((char *)new_ptr - UnitSize), CHUNK_INUSE);
+
+		my_free(ptr);
+	}
+
+	return new_ptr;
 }

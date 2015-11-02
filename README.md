@@ -2,6 +2,11 @@
 
 .................................................................................................................................
 
+>> #### Author : Purva Tendulkar  
+>> #### COEP MIS : 111403049  
+
+.................................................................................................................................
+
 ## What does the program do?  
 
 >> Manage Heap memory and improve on K&R's implementation of Dynamic Memory Management  
@@ -55,12 +60,14 @@ Coalesce with adjacent blocks on either side, if any
 >> ### Faster free (constant time)  
 >> – Size information in both header and footer  
 >> – Next and previous free-list pointers in header and footer  
->> – Free block is directly placed at beginning of linked structre in appropriate bin  
+>> – Free block is directly placed at beginning of linked structre in appropriate bin except for last bin  
+>> – In last bin chunks are placed in order of increasing chunk size  
 
 >> ### Faster malloc (constant time)  
 >> – Separate free list for free chunks of different sizes  
 >> – One bin per chunk size (except last bin)  
 >> – One bin for a range of sizes (only for last bin)  
+>> – For last bin, first fit is best fit  
 
 .................................................................................................................................
 
@@ -106,10 +113,9 @@ Coalesce with adjacent blocks on either side, if any
 ## Implementation Details  
 
 >> #### Initially  
->> – Large chunk of memory is allocated using malloc()  
->> – (K&R uses sbrk() and brk(). I am not using OS calls because I am not familiar with them)  
->> – Pointers are kept at beginning and end of this memory chunk. (HeapStart and HeapEnd)  
->> – They are used only to validate that memory allocated lies between those 2 ends  
+>> – Large chunk of memory is allocated by requesting the Operating System (using sbrk() and brk() calls)  
+>> – Pointers are kept at beginning and end of this memory chunk (HeapStart and HeapEnd)  
+>> – They are used only to validate that memory allocated lies between those two ends  
 >> – Free list array bin pointers set to NULL (using static allocation)  
 
 >> #### When my_malloc() is called  
@@ -120,7 +126,7 @@ Coalesce with adjacent blocks on either side, if any
 >> – Remove split chunk from old location and place in new array index depending on size of the split chunk  
 >> – Check if chunks at previous and next memory locations are free  
 >> – If so, remove them from their location, coalesce with current chunks and place in new location in free array  
->> – Always insert at beginning of link structure for particular bin in array (constant time)  
+>> – Always insert at beginning of link structure for particular bin in array (constant time) except last bin  
 >> – Return pointer to the other part of split chunk to user and set its status as "being used"  
 
 >> #### When my_free() is called  
@@ -128,6 +134,30 @@ Coalesce with adjacent blocks on either side, if any
 >> – Chunk is placed in appropriate bin in free list array  
 >> – Check if chunks at previous and next memory locations are free  
 >> – If so, remove them from their location and coalesce with current chunks and place in new location in free array  
+
+>> #### When my_calloc() is called  
+>> – Allocate the requested memory using my_malloc()  
+>> – Initialize all bytes to zero  
+>> – Return a pointer to the beginning of allocated region  
+>> – Returns NULL if memory allocation failed  
+
+>> #### When my_realloc() is called  
+>> There are three possible cases which can occur  
+
+>> ##### When requested size is less than original size :  
+>> – Change the size of the chunk by updating the header  
+>> – Split the chunk and set the size and status of the other part of the chunk  
+>> – Free this second chunk using my_free()  
+>> – Return a pointer to the beginning of the original chunk  
+
+>> ##### When requested size is equal / nearly equal to orginal size :  
+>> – Return the pointer to the beginning of the same chunk without making any changes  
+
+>> ##### When requested size is larger than original size :  
+>> – Request a new memory chunk of the new size using my_malloc()  
+>> – Copy the contents of original chunk into newly allocated memory  
+>> – Free the original memory using my_free()  
+>> – Return a pointer to the beginning of newly allocated region  
 
 .................................................................................................................................
 
@@ -138,7 +168,7 @@ Coalesce with adjacent blocks on either side, if any
 	– Chunk_isValid()		code written  
 	– PrintBin()			code written  
 	– PrintMemory()			code written  
-	– assert()				assert.h included  
+	– assert()			assert.h included  
 	– gdb (debugger)		gdb installed  
 
 >> #### HeapMgr_isValid()   
@@ -175,15 +205,25 @@ Coalesce with adjacent blocks on either side, if any
 
 ## Testing  
 
->>Two test conditions are provided :  
-	– Fixed Simple test case  
+>>Four test conditions are provided :  
+	– Test for my_malloc() and my_free()  
+	– Test for my_calloc()  
+	– Test for my_realloc()  
 	– Random test case  
 
->> #### Fixed Simple test case :  
+>> #### Test for my_malloc() and my_free() :  
 >> – Used primarily during initial testing   
 >> – my_malloc() and my_free() are implemented by hardcoding values  
 >> – Gives a simple idea about how functions work  
 >> – Easy for debugging  
+
+>> #### Test for my_calloc() :  
+>> – Request a certain amount of memory  
+>> – On success, make sure all bytes starting from the returned pointer have ben properly initialized to zero  
+
+>> #### Test for my_realloc() :  
+>> – Test for all three cases by calling my_realloc()  
+>> – Make sure that data in original memory location is being restored correctly in the newly allocated memory location  
 
 >> #### Random test case :  
 >> – This is used after major bugs found during simple testing were fixed  
@@ -198,6 +238,6 @@ Coalesce with adjacent blocks on either side, if any
 
 >> ##### Run following on terminal :  
 make  
-./try  
+./project  
 
 .................................................................................................................................

@@ -164,18 +164,18 @@ Chunk_T Chunk_getPrevInMem(Chunk_T Chunk, Chunk_T HeapStart)
    properly for this function to work. */
 
 {  
+   assert(HeapStart != NULL);
+   assert(Chunk != NULL);
+   assert(Chunk >= HeapStart);
+
    size_t UnitSize = Chunk_getUnitSize();
    Chunk_T PrevChunk;
-   Chunk_T PrevFooter = (Chunk_T)((char *)Chunk - UnitSize);
-   size_t PrevSize = PrevFooter->uiUnits;
-
-   //size_t PrevSize = (Chunk - Chunk_getUnits(Chunk) - 1)->uiUnits;
-   assert(Chunk != NULL);
-   assert(HeapStart != NULL);
-   assert(Chunk >= HeapStart);
 
    if (Chunk == HeapStart)
       return NULL;
+
+   Chunk_T PrevFooter = (Chunk_T)((char *)Chunk - UnitSize);
+   size_t PrevSize = PrevFooter->uiUnits;
 
    PrevChunk = Chunk - PrevSize;
    assert(PrevChunk >= HeapStart);
