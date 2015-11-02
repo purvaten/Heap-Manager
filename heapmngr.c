@@ -276,7 +276,7 @@ void InsertinBin(Chunk_T chunk_ptr)
 /* Inserts chunk in link structure in respective bin */
 
 {	
-	Chunk_T binptr, prev_chunk;
+	Chunk_T binptr, prev_chunk, prevptr = NULL;
 	size_t chunk_size = Chunk_getUnits(chunk_ptr);
 	size_t temp_size = chunk_size;
 
@@ -288,21 +288,38 @@ void InsertinBin(Chunk_T chunk_ptr)
 		binptr = freebinArray[chunk_size];
 
 	/* Traversing the link list */
-	while (binptr != NULL && Chunk_getUnits(binptr) < chunk_size)
+	while (binptr != NULL && Chunk_getUnits(binptr) < chunk_size) {
+		prevptr = binptr;
 		binptr = Chunk_getNextInList(binptr);
+	}
 
 	/* Insert before binptr in the link structure */
 	Chunk_setNextInList(chunk_ptr, binptr);
 	if (binptr != NULL) {
+		//printf("In InsertBin() - NON NULL case\n");
 		prev_chunk = Chunk_getPrevInList(binptr);
 		Chunk_setPrevInList(chunk_ptr, prev_chunk);
+		if (prev_chunk == NULL)
+			freebinArray[temp_size] = chunk_ptr;
+
+		Chunk_setPrevInList(binptr, chunk_ptr);
+		if (prevptr != NULL)
+			Chunk_setNextInList(prevptr, chunk_ptr);
 	}
 	else {
-		freebinArray[temp_size] = chunk_ptr;
-		Chunk_setPrevInList(chunk_ptr, NULL);
+		//printf("In InsertBin() - NULL case\n");
+
+		if (freebinArray[temp_size] == NULL) {
+			freebinArray[temp_size] = chunk_ptr;
+			Chunk_setPrevInList(chunk_ptr, NULL);
+		}
+		else {
+			//printf("HERE..........................................\n");
+			Chunk_setNextInList(prevptr, chunk_ptr);
+			Chunk_setPrevInList(chunk_ptr, prevptr);
+		}
 	}
 }
-
 
 Chunk_T useChunk(Chunk_T chunk_ptr, size_t Units, int ibin)
 
@@ -547,6 +564,8 @@ void my_free(void *region)
 	assert(HeapMgr_isValid());
 }
 
+/* .................................................................................. */
+
 void *my_calloc(size_t nitems, size_t size)
 
 /* Allocate the requested memory, initialize it to zero and returns a pointer to the beginning of allocated region.
@@ -563,6 +582,8 @@ void *my_calloc(size_t nitems, size_t size)
 
 	return chunk_ptr;
 }
+
+/* .................................................................................. */
 
 void *my_realloc(void *ptr, size_t size)
 
